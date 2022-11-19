@@ -5,16 +5,29 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = [ "cdylib" ]
+# Compile to a dynamic system library (https://doc.rust-lang.org/reference/linkage.html). On
+# Windows, this makes a `.dll`.
+crate-type = ["cdylib"]
 
 [dependencies]
+console_error_panic_hook = "0.1.7"
+js-sys = "0.3.60"
+lazy_static = "1.4.0"
 wasm-bindgen = "0.2.83"
 wee_alloc = "0.4.5"
-console_error_panic_hook = "0.1.7"
 
 [dependencies.web-sys]
 version = "0.3.60"
-features = [ "console" ]
-
-[dependencies.js-sys]
-version = "0.3.60"
+features = [
+    'console',
+    'CssStyleDeclaration',
+    'Document',
+    'Element',
+    'HtmlElement',
+    'HtmlCanvasElement',
+    'WebGl2RenderingContext',
+    'WebGlBuffer',
+    'WebGlProgram',
+    'WebGlShader',
+    'Window',
+]
