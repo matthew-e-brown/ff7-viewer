@@ -4,3 +4,7 @@
 /target
 /pkg
 /wasm-pack.log
+
+# For testing LGP extraction tests
+/char.lgp
+/temp-output

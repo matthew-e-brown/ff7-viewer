@@ -38,34 +38,49 @@ pub fn decompress_lgp(path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Section #1 -- File Header
     // -------------------------
 
+    log::info!("Reading section #1, file header...");
+
     // First 12 bytes
     file.read_exact(&mut buff[0..12])?;
 
     let cname = std::str::from_utf8(&buff[0..12])?;
     let cname = cname.trim_start_matches('\0'); // file "creator" is right-aligned
 
+    log::trace!("Archive author is {}", cname);
+
     if cname != "SQUARESOFT" && cname != "FICEDULA-LGP" {
-        println!("LGP archive has abnormal file author, usually 'SQUARESOFT' or 'FICEDULA-LGP'...");
+        log::warn!("LGP archive has abnormal file author, usually 'SQUARESOFT' or 'FICEDULA-LGP'...");
     }
 
     // Next is a four byte integer saying how many files the archive contains
     file.read_exact(&mut buff[0..4])?;
     let file_count = u32::from_le_bytes(buff[0..4].try_into().unwrap());
 
+    log::info!("\tArchive has {} files", file_count);
+    log::info!("\tReading table of contents...");
+
     // Following is the table of contents (one entry per file)
     let mut toc = HashMap::new();
-    for _ in 0..file_count {
+    for i in 1..=file_count {
+        log::trace!("Entry #{} in TOC", i);
+
         file.read_exact(&mut buff[0..20])?;
-        let filename = null_terminated_string(&buff[0..20])?.to_ascii_lowercase();
+        let filename = null_terminated_string(&buff[0..20])?.to_ascii_uppercase();
+
+        log::trace!("\tFilename = {}", filename);
 
         file.read_exact(&mut buff[0..4])?;
         let file_offset = u32::from_le_bytes(buff[0..4].try_into().unwrap());
 
+        log::trace!("\tFile offset = {}", file_offset);
+
         file.read_exact(&mut buff[0..1])?;
         let check_code = buff[0];
 
+        log::trace!("\tFile check code = {}", check_code);
+
         if check_code != 0x0E && check_code != 0x0B {
-            println!(
+            log::warn!(
                 "File {filename} in LGP archive has abnormal check code {}, usually 0x0E or 0x0B...",
                 check_code
             );
@@ -74,8 +89,10 @@ pub fn decompress_lgp(path: &str) -> Result<(), Box<dyn std::error::Error>> {
         file.read_exact(&mut buff[0..2])?;
         let conflict_code = u16::from_le_bytes(buff[0..2].try_into().unwrap());
 
+        log::trace!("\tFile conflict code = {}", conflict_code);
+
         if conflict_code != 0x00 {
-            println!(
+            log::warn!(
                 "File {filename} in LGP archive has abnormal conflict code {}, usually 0x00...",
                 conflict_code
             );
@@ -99,18 +116,24 @@ pub fn decompress_lgp(path: &str) -> Result<(), Box<dyn std::error::Error>> {
     // Section #3 -- Actual Data
     // -------------------------
 
+    log::info!("Reading section #3, actual data...");
+
     // While we're at it, keep track of the furthest pointer we reach. We will use that to skip right to the end once
     // we're finished.
     let mut end_of_data: u64 = data_start;
     for (entry_name, entry) in &toc {
+        log::trace!("Reading file data for {}", entry_name);
+
         // Skip to entry and read file name
         file.seek(SeekFrom::Start(entry.file_offset as u64))?;
         file.read_exact(&mut buff[0..20])?;
 
-        let name = null_terminated_string(&buff[0..20])?.to_ascii_lowercase();
+        let name = null_terminated_string(&buff[0..20])?.to_ascii_uppercase();
+
+        log::trace!("\tRead filename {}", name);
 
         if *entry_name != name {
-            println!(
+            log::warn!(
                 "File header at offset {} of LGP archive does not agree on its name with with TOC: {} != {}...",
                 entry.file_offset, name, entry_name
             );
@@ -118,6 +141,8 @@ pub fn decompress_lgp(path: &str) -> Result<(), Box<dyn std::error::Error>> {
 
         file.read_exact(&mut buff[0..4])?;
         let len = u32::from_le_bytes(buff[0..4].try_into().unwrap());
+
+        log::trace!("\tFile data is {} bytes long", len);
 
         let mut file_data = vec![0u8; len as usize];
         file.read_exact(&mut file_data)?;
@@ -128,22 +153,28 @@ pub fn decompress_lgp(path: &str) -> Result<(), Box<dyn std::error::Error>> {
         let cur_ptr = file.seek(SeekFrom::Current(0))?;
         if cur_ptr > end_of_data {
             end_of_data = cur_ptr;
+            log::trace!("New 'furthest pointer', {:x}", end_of_data);
         }
     }
 
     // Section #4 -- Terminator
     // ------------------------
 
+    log::info!("Reading section #4, terminator...");
+
     // Should just be 'FINAL FANTASY7' or 'LGP PATCH FILE' in all cases.
     let mut final_buffer = Vec::with_capacity(16);
     file.seek(SeekFrom::Start(end_of_data))?;
-    file.read_to_end(&mut final_buffer)?;
+    file.read_to_end(&mut final_buffer)?; // read the rest of the file
+
+    log::trace!("Final chunk of file: {:x?}", final_buffer);
 
     let term = String::from_utf8(final_buffer).unwrap_or("".to_owned());
 
     if term != "FINAL FANTASY7" && term != "LGP PATCH FILE" {
-        println!("LGP archive has unusual terminator {}, usually 'FINAL FANTASY7' or 'LGP PATCH FILE'...", term);
+        log::warn!("LGP archive has unusual terminator {}, usually 'FINAL FANTASY7' or 'LGP PATCH FILE'...", term);
     }
 
+    log::info!("Finished parsing.");
     Ok(())
 }

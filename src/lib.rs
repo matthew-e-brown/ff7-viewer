@@ -15,6 +15,9 @@ pub fn main() -> Result<(), JsValue> {
     // Make Rust 'panics' log to JS console
     console_error_panic_hook::set_once();
 
+    // Setup logger
+    wasm_logger::init(wasm_logger::Config::default());
+
     let (canvas, gl) = webgl::init_viewport("webgl-canvas");
     console::log_2(&canvas, &gl);
 

@@ -13,8 +13,13 @@ crate-type = ["cdylib", "rlib"]
 console_error_panic_hook = "0.1.7"
 js-sys = "0.3.60"
 lazy_static = "1.4.0"
+log = "0.4.17"
 wasm-bindgen = "0.2.83"
+wasm-logger = "0.2.0"
 wee_alloc = "0.4.5"
+
+# Temp for binary testing
+simple_logger = "4.0.0"
 
 [dependencies.web-sys]
 version = "0.3.60"
