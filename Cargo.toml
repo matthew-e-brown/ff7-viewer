@@ -6,8 +6,8 @@ edition = "2021"
 
 [lib]
 # Compile to a dynamic system library (https://doc.rust-lang.org/reference/linkage.html). On
-# Windows, this makes a `.dll`.
-crate-type = ["cdylib"]
+# Windows, this makes a `.dll`. 'rlib' is temporary while testing using standard main.rs
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
