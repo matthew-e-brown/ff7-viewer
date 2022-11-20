@@ -1,10 +1,5 @@
-/node_modules
-/dist
-
 /target
-/pkg
-/wasm-pack.log
 
-# For testing LGP extraction tests
+# For testing LGP extraction
 /char.lgp
 /temp-output
