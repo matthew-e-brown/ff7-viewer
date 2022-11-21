@@ -64,9 +64,9 @@ impl LgpFile {
             match ext.to_ascii_uppercase().to_str() {
                 Some("HRC") => Ok(Self::Hierarchy(data)),
                 Some("RSD") => Ok(Self::Resources(data)),
-                Some("P") => Ok(Self::Polygons(data)),
                 Some("TEX") => Ok(Self::Textures(data)),
                 Some("A") => Ok(Self::Animation(data)),
+                Some("P") => Ok(Self::Polygons(data)),
                 Some(_) => Err(DecompressError::UnknownType),
                 None => Err(DecompressError::Utf8Error),
             }

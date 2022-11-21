@@ -1,34 +1,15 @@
 [package]
-name = "project"
-description = "Final project for COIS-4480H"
+name = "ff7-viewer"
+description = """
+A model viewer for the PC version of Final Fantasy 7. Accepts an LGP archive as input.
+
+This is my final project of COIS-4480H: Computer Graphics at Trent University.
+"""
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-# Compile to a dynamic system library (https://doc.rust-lang.org/reference/linkage.html). On
-# Windows, this makes a `.dll`.
-crate-type = ["cdylib"]
-
 [dependencies]
-console_error_panic_hook = "0.1.7"
-js-sys = "0.3.60"
-lazy_static = "1.4.0"
+gl = "0.14.0"
+glfw = "0.47.0"
 log = "0.4.17"
-wasm-bindgen = "0.2.83"
-wasm-logger = "0.2.0"
-
-[dependencies.web-sys]
-version = "0.3.60"
-features = [
-    'console',
-    'CssStyleDeclaration',
-    'Document',
-    'Element',
-    'HtmlElement',
-    'HtmlCanvasElement',
-    'WebGl2RenderingContext',
-    'WebGlBuffer',
-    'WebGlProgram',
-    'WebGlShader',
-    'Window',
-]
+simple_logger = "4.0.0"
