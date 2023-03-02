@@ -1,10 +1,22 @@
 [package]
 name = "ff7-viewer"
+version = "0.1.0"
+authors = ["Matthew Brown <matthew.e.brown.17@gmail.com>"]
 description = """
 A model viewer for the PC version of Final Fantasy 7. Accepts an LGP archive as input.
 """
-version = "0.1.0"
+license = "BSD-3-Clause"
 edition = "2021"
 
+# crates are separate from main binary pacakge
 [workspace]
-# members = [ "crates/" ]
+members = [
+    "crates/extract",
+    "crates/math",
+    "crates/gfx",
+]
+
+[dependencies]
+extract = { path = "crates/extract" }
+math = { path = "crates/math"}
+gfx = { path = "crates/gfx" }
