@@ -5,9 +5,7 @@ use glfw::WindowMode::Windowed;
 use glfw::{Action, Context, Key, Window, WindowEvent};
 
 
-pub trait ToBuffer {
-
-}
+pub trait ToBuffer {}
 
 
 #[allow(dead_code)]
@@ -165,10 +163,7 @@ pub fn main() {
 unsafe fn compile_shader(shader_type: GLuint, source: &str) -> Result<GLuint, String> {
     let shader = gl::CreateShader(shader_type);
     let src = source.as_bytes().as_ptr().cast::<i8>();
-    let len: i32 = source
-        .len()
-        .try_into()
-        .or(Err("Shader source is too long.".to_owned()))?;
+    let len: i32 = source.len().try_into().or(Err("Shader source is too long.".to_owned()))?;
 
     // glShaderSource *actually* expects two arrays here, but since they expect C-style arrays and we've told them that
     // there'll be only one, we can just pass the pointers directly.

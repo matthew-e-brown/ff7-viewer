@@ -9,7 +9,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+thiserror = "1.0.38"
+# Graphics
 gl = "0.14.0"
 glfw = "0.47.0"
+# Logging
 log = "0.4.17"
 simple_logger = "4.0.0"
