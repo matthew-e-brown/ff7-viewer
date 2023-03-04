@@ -1,4 +1,5 @@
 /target
+/.vscode
 
 # For testing LGP extraction
 /char.lgp

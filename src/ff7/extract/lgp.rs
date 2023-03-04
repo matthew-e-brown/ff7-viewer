@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use super::{sz_to_str, read, ExtractError};
+use super::{read, sz_to_str, u16_from_le_bytes, u32_from_le_bytes, ParseError};
 
 
 /// The parsed contents of one LGP file.
@@ -26,31 +26,30 @@ pub struct LGPFile<'a> {
 
 
 impl<'a> LGPFile<'a> {
-    pub fn from_bytes(data: &'a [u8]) -> Result<Self, ExtractError> {
+    pub fn from_bytes(data: &'a [u8]) -> Result<Self, ParseError> {
         let mut main_ptr = 0;
-        let read = |p: &mut usize, l| read(data, p, l);
 
         // Check the first 12 bytes for the file's creator
-        let creator = sz_to_str(read(&mut main_ptr, 12)?)?;
+        let creator = sz_to_str(read(data, &mut main_ptr, 12)?)?;
         if creator != "SQUARESOFT" && creator != "FICEDULA-LGP" {
             // log warning?
         }
 
-        // Next is a 4-byte integer with the number of files from the archive. Can unwrap the `&[u8] to &[u8; 4]`
-        // conversion because the success of `read` guarantees a correct length
-        let file_count = u32::from_le_bytes(read(&mut main_ptr, 4)?.try_into().unwrap());
+        // Next is a 4-byte integer with the number of files from the archive. Can unwrap the `&[u8]` to u32 conversion
+        // because the success of `read` guarantees a correct length.
+        let file_count = u32_from_le_bytes(read(data, &mut main_ptr, 4)?).unwrap();
 
         // Next is the table of contents
         let mut files = HashMap::with_capacity(file_count as usize);
         let mut end_of_data = main_ptr; // updated as we look through the files pointed to by the TOC
 
         for _ in 0..file_count {
-            let file_name_data = read(&mut main_ptr, 20)?;
+            let file_name_data = read(data, &mut main_ptr, 20)?;
             let file_name = sz_to_str(file_name_data)?;
 
-            let offset = u32::from_le_bytes(read(&mut main_ptr, 4)?.try_into().unwrap());
-            let check = u8::from_le_bytes(read(&mut main_ptr, 1)?.try_into().unwrap());
-            let dupe = u16::from_le_bytes(read(&mut main_ptr, 2)?.try_into().unwrap());
+            let offset = u32_from_le_bytes(read(data, &mut main_ptr, 4)?).unwrap();
+            let check = read(data, &mut main_ptr, 1)?[0];
+            let dupe = u16_from_le_bytes(read(data, &mut main_ptr, 2)?).unwrap();
 
             if check != 0x0E && check != 0x0B {
                 // log warning?
@@ -58,7 +57,7 @@ impl<'a> LGPFile<'a> {
 
             if dupe != 0 {
                 // handle duplicate
-                return Err(ExtractError::DuplicateNameError);
+                return Err(ParseError::DuplicateNameError);
             }
 
             // Go read the file's data
@@ -67,15 +66,15 @@ impl<'a> LGPFile<'a> {
             let mut file_ptr = offset as usize;
 
             // verify that the TOC's name matches the actual file's name
-            if sz_to_str(read(&mut file_ptr, 20)?)? != file_name {
+            if sz_to_str(read(data, &mut file_ptr, 20)?)? != file_name {
                 // log warning?
             }
 
-            let file_size = u32::from_le_bytes(read(&mut file_ptr, 4)?.try_into().unwrap()) as usize;
-            let file_data = read(&mut file_ptr, file_size)?;
+            let file_size = u32_from_le_bytes(read(data, &mut file_ptr, 4)?)? as usize;
+            let file_data = read(data, &mut file_ptr, file_size)?;
 
             if let Some(_) = files.insert(file_name, file_data) {
-                return Err(ExtractError::DuplicateNameError);
+                return Err(ParseError::DuplicateNameError);
             }
 
             // Keep track of the furthest point we find in the file so that we can jump to the end later
