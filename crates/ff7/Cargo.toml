@@ -1,0 +1,10 @@
+[package]
+name = "ff7"
+version = "0.1.0"
+edition = "2021"
+description = "A library for working with file-types from the PC version of Final Fantasy 7."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1.0.38"

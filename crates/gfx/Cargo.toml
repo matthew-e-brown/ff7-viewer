@@ -1,0 +1,18 @@
+[package]
+name = "gfx"
+version = "0.1.0"
+edition = "2021"
+description = """
+A simple wrapper for OpenGL and GLFW.
+
+Not intended for production use.
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1.0.38"
+log = "0.4.17"
+simple_logger = "4.0.0"
+gl = "0.14.0"
+glfw = "0.47.0"
